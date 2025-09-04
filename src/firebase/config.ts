@@ -1,18 +1,21 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBrv7EsmH7ic6Y7854ysCAFkiy8qgo_bm8",
+  authDomain: "system-clear-port-b513e.firebaseapp.com",
+  projectId: "system-clear-port-b513e",
+  storageBucket: "system-clear-port-b513e.firebasestorage.app",
+  messagingSenderId: "756046169704",
+  appId: "1:756046169704:web:5ac2e9effec016aa00dddd",
+  measurementId: "G-7YWWNNL6PQ"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const analytics = getAnalytics(app);
 
-export { auth, db };
+export { auth, db, analytics };

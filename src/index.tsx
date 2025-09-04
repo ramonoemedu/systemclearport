@@ -1,8 +1,13 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client'; // updated import
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import { BrowserRouter } from 'react-router-dom'; // add this
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "./firebase/config";
+import LoginPage from './components/Auth/LoginPage';
+import { App } from './App';
+import HomePage from './components/Home/HomePage';
 
 const theme = createTheme({
   palette: {
@@ -13,23 +18,31 @@ const theme = createTheme({
   shape: { borderRadius: 12 },
 });
 
-export default function LoginPage() {
-  return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="#f5f6fa">
-      <Paper elevation={3} sx={{ p: 4, minWidth: 320 }}>
-        <Typography variant="h5" mb={2}>Sign in</Typography>
-        <TextField label="Email" fullWidth margin="normal" />
-        <TextField label="Password" type="password" fullWidth margin="normal" />
-        <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>Login</Button>
-      </Paper>
-    </Box>
-  );
-}
+// create root for React 18
+const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-ReactDOM.render(
-  <ThemeProvider theme={theme}>
-    <CssBaseline />
-    <App />
-  </ThemeProvider>,
-  document.getElementById('root')
+const AuthWrapper: React.FC = () => {
+  const [user, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return null; // or a loading spinner
+
+  return user ? <App /> : <LoginPage />;
+};
+
+root.render(
+  <BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthWrapper />
+    </ThemeProvider>
+  </BrowserRouter>
 );

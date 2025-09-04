@@ -1,19 +1,22 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import LoginPage from './components/Auth/LoginPage';
 import HomePage from './components/Home/HomePage';
-import PortalPage from './components/Portal/PortalPage';
+import UserPage from './components/Users/UserPage';
+import EmployeeDataFormContainer from './components/EmployeeDataForm/EmployeeDataFormContainer';
+import ReportPage from './components/Report/report';
 
-const App: React.FC = () => {
+
+export function App() {
   return (
-    <Router>
-      <Switch>
-        <Route path="/" exact component={LoginPage} />
-        <Route path="/home" component={HomePage} />
-        <Route path="/portal" component={PortalPage} />
-      </Switch>
-    </Router>
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/home" element={<HomePage />}>
+        <Route path="users" element={<UserPage />} />
+        <Route path="employeedataform" element={<EmployeeDataFormContainer />} />
+        <Route path="reports" element={<ReportPage />} />
+        {/* Add more nested routes here */}
+      </Route>
+    </Routes>
   );
-};
-
-export default App;
+}

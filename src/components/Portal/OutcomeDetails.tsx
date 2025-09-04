@@ -20,7 +20,13 @@ const OutcomeDetails: React.FC = () => {
 
     const handleDownloadPdf = () => {
         if (outcomeData) {
-            generatePdf(outcomeData);
+            const template = (
+                <div>
+                    <h1>Outcome Details</h1>
+                    <pre>{JSON.stringify(outcomeData, null, 2)}</pre>
+                </div>
+            );
+            generatePdf(outcomeData, template);
         }
     };
 
