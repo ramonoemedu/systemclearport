@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import { getDocs, collection } from "firebase/firestore";
 import { db } from "../../firebase/config";
-import * as XLSX from "xlsx";
 import { unsanitizeKey } from "../../utils/KeySanitizer";
 import TextField from "@mui/material/TextField";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -84,47 +83,6 @@ const ReportPage: React.FC = () => {
     };
     fetchData();
   }, [page, searchText, blDate, coDate, rcvDate]);
-
-const handleExportWithTemplate = async () => {
-  const response = await fetch("/assets/report.xlsx");
-  const arrayBuffer = await response.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: "array" });
-
-  // Prepare data for the new sheet
-  // Use the first selected row or the first row if none selected
-  const exportRows =
-    selectedRows.length > 0
-      ? selectedRows.map((idx) => dbRows[idx])
-      : dbRows.length > 0
-      ? [dbRows[0]]
-      : [];
-
-  if (exportRows.length > 0) {
-    const rowData = exportRows[0];
-    // Prepare header and value rows
-    const headers = Object.keys(rowData);
-    const values = Object.values(rowData);
-
-    // Create a 2D array: first row is headers, second row is values
-    const dataSheet = [headers, values];
-
-    // Create a new worksheet
-    const newWorksheet = XLSX.utils.aoa_to_sheet(dataSheet);
-
-    // Add the new sheet to the workbook
-    XLSX.utils.book_append_sheet(workbook, newWorksheet, "Data");
-  }
-
-  // Save the workbook
-  const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-  const blob = new Blob([wbout], { type: "application/octet-stream" });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "FilledReport.xlsx";
-  a.click();
-  window.URL.revokeObjectURL(url);
-};
 
 const excelHeaderOrder = [
   "S. No.", "File #", "B/L No", "B/L Date", "Imp/Exp", "Ship'm Mode", "Importer", "Client Name", "Inv", "PKL",

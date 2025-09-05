@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import EmployeeDataFormPage from "./EmployeeDataFormPage";
 import { db } from "../../firebase/config";
 import {
@@ -10,7 +10,6 @@ import {
   query,
   orderBy,
   limit,
-  startAfter,
 } from "firebase/firestore";
 import dayjs from "dayjs";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -83,7 +82,7 @@ const EmployeeDataFormContainer: React.FC = () => {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [ setLastDoc] = useState<any>(null);
   const [totalRows, setTotalRows] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [filteredRows, setFilteredRows] = useState(rows);
@@ -101,7 +100,7 @@ const EmployeeDataFormContainer: React.FC = () => {
   }, []);
 
   // Fetch paginated rows
-  const fetchRows = async (pageNum = 1) => {
+  const fetchRows = useCallback(async (pageNum = 1) => {
     setLoading(true);
     try {
       let q = query(collection(db, "employeeData"), orderBy("BL_No"), limit(PAGE_SIZE));
@@ -120,11 +119,11 @@ const EmployeeDataFormContainer: React.FC = () => {
       console.error("Error fetching employee data:", err);
     }
     setLoading(false);
-  };
+  }, [setLoading, setRows, setLastDoc]);
 
   useEffect(() => {
     fetchRows(page);
-  }, [page]);
+  }, [page, fetchRows]);
 
   useEffect(() => {
     let filtered = rows;

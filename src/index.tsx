@@ -7,7 +7,6 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase/config";
 import LoginPage from './components/Auth/LoginPage';
 import { App } from './App';
-import HomePage from './components/Home/HomePage';
 
 const theme = createTheme({
   palette: {

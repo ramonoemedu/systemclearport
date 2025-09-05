@@ -8,8 +8,6 @@ import {
   Drawer,
   List,
   ListItem,
-  ListItemIcon,
-  ListItemText,
   Divider,
   IconButton,
   Avatar,
