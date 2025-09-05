@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 node_modules
 firebase-debug.log
 .vscode
+.DS_Store

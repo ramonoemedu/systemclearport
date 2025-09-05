@@ -51,6 +51,7 @@ type Props = {
   handleDialogSave: () => void;
   handleChange: (col: string, value: string) => void;
   loading: boolean;
+  handleExportWithTemplate: () => void;
 };
 
 const EmployeeDataFormPage: React.FC<Props> = ({
