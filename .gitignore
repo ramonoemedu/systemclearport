@@ -141,3 +141,6 @@ node_modules
 firebase-debug.log
 .vscode
 .DS_Store
+.env
+.eslintrc.json
+.prettierrc

@@ -52,6 +52,7 @@ type Props = {
   handleChange: (col: string, value: string) => void;
   loading: boolean;
   handleExportWithTemplate: () => void;
+  dropdownOptions: Record<string, string[]>;
 };
 
 const EmployeeDataFormPage: React.FC<Props> = ({
@@ -65,24 +66,25 @@ const EmployeeDataFormPage: React.FC<Props> = ({
   handleDialogClose,
   handleDialogSave,
   handleChange,
-  loading,
+  dropdownOptions,
 }) => {
   const dateFields = [
     "B/L Date",
     "INV & PKL Date",
     "CO Date",
-    "CO Date",
     "Rcv Date",
     "ETA/ETD",
     "Received Date",
     "LOAD ON",
+    "TP DATE",
+    "IM8 DATE",
+    "IM7 DATE",
+    "SR DATE",
+    "CV DATE",
+    "CO DATE",
+    "IM4 DATE",
+    "EX3 DATE",
   ];
-
-  const dropdownFields: Record<string, string[]> = {
-    "Imp/Exp": ["IMPORT", "EXPORT"],
-    "Ship'm Mode": ["SEA", "AIR", "LAND"],
-    "Vssl/Truck": ["VSSL", "TRUCK"],
-  };
 
   return (
     <Box sx={{ maxWidth: "100%", mx: "auto", mt: 4, position: "relative" }}>
@@ -109,11 +111,11 @@ const EmployeeDataFormPage: React.FC<Props> = ({
                       fontSize: 13,
                       borderRight: "1px solid #eee",
                       ...(col === "B/L No" ||
-                        col === "Quantity" ||
-                        col === "CBM/CIF" ||
-                        col === "20'" ||
-                        col === "40'" ||
-                        col === "CONT SIZE"
+                      col === "Quantity" ||
+                      col === "CBM/CIF" ||
+                      col === "20'" ||
+                      col === "40'" ||
+                      col === "CONT SIZE"
                         ? { textAlign: "right" }
                         : { textAlign: "left" }),
                     }}
@@ -216,19 +218,40 @@ const EmployeeDataFormPage: React.FC<Props> = ({
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box sx={{ width: "100%" }}>
               {/* Shipment Details */}
-              <Typography variant="subtitle1" sx={{ mb: 1, mt: 2, fontWeight: 600 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 1, mt: 2, fontWeight: 600 }}
+              >
                 Shipment Details
               </Typography>
               <Divider sx={{ mb: 2 }} />
               <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
                 {[
-                  "B/L No", "B/L Date", "Imp/Exp", "Ship'm Mode", "Importer", "Client Name",
-                  "Inv", "PKL", "INV & PKL Date", "CO", "CO Date", "Rcv Date", "Shipping Line",
-                  "MBL #", "Vssl/Truck", "ETA/ETD", "LOAD ON", "POL", "Transit Port", "SCAN STATION",
-                  "Final Destination"
+                  "Job",
+                  "B/L No",
+                  "B/L Date",
+                  "Imp/Exp",
+                  "Ship'm Mode",
+                  "Importer",
+                  "Client Name",
+                  "Inv",
+                  "PKL",
+                  "INV & PKL Date",
+                  "CO",
+                  "CO Date",
+                  "Rcv Date",
+                  "Shipping Line",
+                  "MBL #",
+                  "Vssl/Truck",
+                  "ETA/ETD",
+                  "LOAD ON",
+                  "POL",
+                  "Transit Port",
+                  "SCAN STATION",
+                  "Final Destination",
                 ].map((col) => (
                   <Box key={col} sx={{ flex: "1 1 260px", minWidth: 220 }}>
-                    {dropdownFields[col] ? (
+                    {Object.keys(dropdownOptions).includes(col) ? (
                       <FormControl fullWidth size="small" required>
                         <InputLabel>{col}</InputLabel>
                         <Select
@@ -236,7 +259,7 @@ const EmployeeDataFormPage: React.FC<Props> = ({
                           value={form[col] || ""}
                           onChange={(e) => handleChange(col, e.target.value)}
                         >
-                          {dropdownFields[col].map((opt) => (
+                          {dropdownOptions[col].map((opt) => (
                             <MenuItem key={opt} value={opt}>
                               {opt}
                             </MenuItem>
@@ -248,7 +271,10 @@ const EmployeeDataFormPage: React.FC<Props> = ({
                         label={col}
                         value={form[col] ? dayjs(form[col]) : null}
                         onChange={(date) =>
-                          handleChange(col, date ? date.format("YYYY-MM-DD") : "")
+                          handleChange(
+                            col,
+                            date ? date.format("YYYY-MM-DD") : ""
+                          )
                         }
                         slotProps={{
                           textField: {
@@ -274,14 +300,28 @@ const EmployeeDataFormPage: React.FC<Props> = ({
               </Stack>
 
               {/* Commodity & Container Details */}
-              <Typography variant="subtitle1" sx={{ mb: 1, mt: 4, fontWeight: 600 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 1, mt: 4, fontWeight: 600 }}
+              >
                 Commodity & Container Details
               </Typography>
               <Divider sx={{ mb: 2 }} />
               <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
                 {[
-                  "Commodity", "NW", "GW", "CBM/CIF", "FOB", "Container No", "Quantity",
-                  "20'", "40'", "CONT SIZE", "Shipper Name", "Received Date", "SR NAME"
+                  "Commodity",
+                  "NW",
+                  "GW",
+                  "CBM/CIF",
+                  "FOB",
+                  "Container No",
+                  "Quantity",
+                  "20'",
+                  "40'",
+                  "CONT SIZE",
+                  "Shipper Name",
+                  "Received Date",
+                  "SR NAME",
                 ].map((col) => (
                   <Box key={col} sx={{ flex: "1 1 260px", minWidth: 220 }}>
                     {dateFields.includes(col) ? (
@@ -289,7 +329,73 @@ const EmployeeDataFormPage: React.FC<Props> = ({
                         label={col}
                         value={form[col] ? dayjs(form[col]) : null}
                         onChange={(date) =>
-                          handleChange(col, date ? date.format("YYYY-MM-DD") : "")
+                          handleChange(
+                            col,
+                            date ? date.format("YYYY-MM-DD") : ""
+                          )
+                        }
+                        slotProps={{
+                          textField: {
+                            size: "small",
+                            fullWidth: true,
+                            required: true,
+                            helperText: "Format: dd-mm-yyyy",
+                          },
+                        }}
+                      />
+                    ) : (
+                      <TextField
+                        label={col}
+                        value={form[col] || ""}
+                        onChange={(e) => handleChange(col, e.target.value)}
+                        size="small"
+                        fullWidth
+                        required
+                      />
+                    )}
+                  </Box>
+                ))}
+              </Stack>
+              {/* Add new section for Customs & Tracking Details */}
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 1, mt: 4, fontWeight: 600 }}
+              >
+                Customs & Tracking Details
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                {[
+                  "TP",
+                  "TP DATE",
+                  "IM8",
+                  "IM8 DATE",
+                  "GATE IN DP/BW/SEZ",
+                  "IM7",
+                  "IM7 DATE",
+                  "SR",
+                  "SR DATE",
+                  "CV",
+                  "CV DATE",
+                  "CO",
+                  "CO DATE",
+                  "IM4",
+                  "IM4 DATE",
+                  "EX3",
+                  "EX3 DATE",
+                  "GATE OUT DP/BW/SEZ",
+                  "INV",
+                ].map((col) => (
+                  <Box key={col} sx={{ flex: "1 1 260px", minWidth: 220 }}>
+                    {dateFields.includes(col) ? (
+                      <DatePicker
+                        label={col}
+                        value={form[col] ? dayjs(form[col]) : null}
+                        onChange={(date) =>
+                          handleChange(
+                            col,
+                            date ? date.format("YYYY-MM-DD") : ""
+                          )
                         }
                         slotProps={{
                           textField: {
