@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   Box,
   Typography,
@@ -15,7 +15,8 @@ import {
   TableContainer,
   Checkbox,
   CircularProgress,
-} from '@mui/material';
+  Stack,
+} from "@mui/material";
 import {
   getDocs,
   collection,
@@ -24,18 +25,18 @@ import {
   limit,
   writeBatch,
   doc,
-} from 'firebase/firestore';
-import { db } from '../../firebase/config';
-import { unsanitizeKey, sanitizeKey, columns } from '../../utils/KeySanitizer';
-import TextField from '@mui/material/TextField';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import Paper from '@mui/material/Paper';
-import dayjs from 'dayjs';
-import ExcelJS from 'exceljs';
-import { useNavigate } from 'react-router-dom';
-import SortIcon from '@mui/icons-material/Sort';
-import { gapi } from 'gapi-script';
+} from "firebase/firestore";
+import { db } from "../../firebase/config";
+import { unsanitizeKey, sanitizeKey, columns } from "../../utils/KeySanitizer";
+import TextField from "@mui/material/TextField";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import Paper from "@mui/material/Paper";
+import dayjs from "dayjs";
+import ExcelJS from "exceljs";
+import { useNavigate } from "react-router-dom";
+import SortIcon from "@mui/icons-material/Sort";
+import { gapi } from "gapi-script";
 
 // Add global declaration for window.google to avoid TypeScript error
 declare global {
@@ -50,14 +51,14 @@ const PAGE_SIZE = 20;
 
 const ReportPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [filteredRows, setFilteredRows] = useState<Record<string, any>[]>([]);
   const [page, setPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
   const [lastDoc, setLastDoc] = useState<any>(null);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [blDate, setBlDate] = useState<string | null>(null);
   const [coDate, setCoDate] = useState<string | null>(null);
   const [rcvDate, setRcvDate] = useState<string | null>(null);
@@ -65,7 +66,7 @@ const ReportPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [jobsConverted, setJobsConverted] = useState(false);
   const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [tokenClient, setTokenClient] = useState<any>(null);
   const googleScriptLoaded = useRef(false);
   const [isGoogleAuthenticated, setIsGoogleAuthenticated] = useState(false);
@@ -76,20 +77,20 @@ const ReportPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const snapshot = await getDocs(collection(db, 'employeeData'));
+      const snapshot = await getDocs(collection(db, "employeeData"));
       let updatedCount = 0;
       const batch = writeBatch(db);
 
       for (const docSnapshot of snapshot.docs) {
         const data = docSnapshot.data();
-        const jobKey = sanitizeKey('Job');
+        const jobKey = sanitizeKey("Job");
 
         if (
           data[jobKey] &&
-          typeof data[jobKey] === 'string' &&
+          typeof data[jobKey] === "string" &&
           !isNaN(Number(data[jobKey]))
         ) {
-          batch.update(doc(db, 'employeeData', docSnapshot.id), {
+          batch.update(doc(db, "employeeData", docSnapshot.id), {
             [jobKey]: Number(data[jobKey]),
           });
           updatedCount++;
@@ -112,7 +113,7 @@ const ReportPage: React.FC = () => {
 
       setJobsConverted(true);
     } catch (err) {
-      console.error('Error converting jobs:', err);
+      console.error("Error converting jobs:", err);
     } finally {
       setLoading(false);
     }
@@ -128,9 +129,9 @@ const ReportPage: React.FC = () => {
 
         // Then proceed with regular fetching with proper numeric sorting
         const q = query(
-          collection(db, 'employeeData'),
-          orderBy(sanitizeKey('Job'), 'desc'),
-          limit(PAGE_SIZE)
+          collection(db, "employeeData"),
+          orderBy(sanitizeKey("Job"), "desc"),
+          limit(PAGE_SIZE),
         );
 
         const snapshot = await getDocs(q);
@@ -152,25 +153,25 @@ const ReportPage: React.FC = () => {
         setLastDoc(
           snapshot.docs.length > 0
             ? snapshot.docs[snapshot.docs.length - 1]
-            : null
+            : null,
         );
       } catch (err) {
-        console.error('Error fetching employee data:', err);
+        console.error("Error fetching employee data:", err);
       } finally {
         setLoading(false);
       }
     },
-    [jobsConverted]
+    [jobsConverted],
   );
 
   // Apply filtering to rows
   useEffect(() => {
-    if (!document.getElementById('google-identity')) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
+    if (!document.getElementById("google-identity")) {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.defer = true;
-      script.id = 'google-identity';
+      script.id = "google-identity";
       document.body.appendChild(script);
     }
     let filtered = [...rows];
@@ -178,40 +179,40 @@ const ReportPage: React.FC = () => {
     if (searchText) {
       filtered = filtered.filter((row) =>
         columns.some((col) =>
-          String(row[col] ?? '')
+          String(row[col] ?? "")
             .toLowerCase()
-            .includes(searchText.toLowerCase())
-        )
+            .includes(searchText.toLowerCase()),
+        ),
       );
     }
 
     if (blDate) {
-      filtered = filtered.filter((row) => row['B/L Date'] === blDate);
+      filtered = filtered.filter((row) => row["B/L Date"] === blDate);
     }
 
     if (coDate) {
-      filtered = filtered.filter((row) => row['CO Date'] === coDate);
+      filtered = filtered.filter((row) => row["CO Date"] === coDate);
     }
 
     if (rcvDate) {
-      filtered = filtered.filter((row) => row['Rcv Date'] === rcvDate);
+      filtered = filtered.filter((row) => row["Rcv Date"] === rcvDate);
     }
 
     // Apply sorting if a sort field is selected
     if (sortField) {
       filtered.sort((a, b) => {
-        const aValue = a[sortField] || '';
-        const bValue = b[sortField] || '';
+        const aValue = a[sortField] || "";
+        const bValue = b[sortField] || "";
 
         // Handle numeric fields differently
         if (!isNaN(Number(aValue)) && !isNaN(Number(bValue))) {
-          return sortDirection === 'asc'
+          return sortDirection === "asc"
             ? Number(aValue) - Number(bValue)
             : Number(bValue) - Number(aValue);
         }
 
         // Handle string comparison
-        return sortDirection === 'asc'
+        return sortDirection === "asc"
           ? String(aValue).localeCompare(String(bValue))
           : String(bValue).localeCompare(String(aValue));
       });
@@ -224,8 +225,8 @@ const ReportPage: React.FC = () => {
   // Initial data fetch
   useEffect(() => {
     if (!googleScriptLoaded.current) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.defer = true;
       script.onload = initializeGoogleIdentity;
@@ -237,11 +238,11 @@ const ReportPage: React.FC = () => {
     function initializeGoogleIdentity() {
       window.google.accounts.oauth2.initTokenClient({
         client_id:
-          '756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com',
-        scope: 'https://www.googleapis.com/auth/drive.file',
+          "756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com",
+        scope: "https://www.googleapis.com/auth/drive.file",
         callback: (tokenResponse: any) => {
           if (tokenResponse && tokenResponse.access_token) {
-            console.log('Token received successfully');
+            console.log("Token received successfully");
             // Store the token client for later use
             setTokenClient(tokenResponse);
           }
@@ -256,38 +257,38 @@ const ReportPage: React.FC = () => {
   const initGoogleApi = useCallback(async () => {
     try {
       await new Promise<void>((resolve) => {
-        gapi.load('client:auth2', resolve);
+        gapi.load("client:auth2", resolve);
       });
 
       await gapi.client.init({
         apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
         clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID,
         discoveryDocs: [
-          'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+          "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
         ],
-        scope: 'https://www.googleapis.com/auth/drive.file',
+        scope: "https://www.googleapis.com/auth/drive.file",
       });
 
       const authInstance = gapi.auth2.getAuthInstance();
       authInstance.isSignedIn.listen((isSignedIn: boolean) => {
-        console.log('Auth status changed:', isSignedIn);
+        console.log("Auth status changed:", isSignedIn);
         setIsGoogleAuthenticated(isSignedIn);
       });
 
       setIsGoogleAuthenticated(authInstance.isSignedIn.get());
-      console.log('Google API initialized successfully');
+      console.log("Google API initialized successfully");
     } catch (error) {
-      console.error('Error initializing Google API:', error);
+      console.error("Error initializing Google API:", error);
     }
   }, []);
 
   function loadGoogleScript(): void {
-    if (!document.getElementById('google-identity')) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
+    if (!document.getElementById("google-identity")) {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.defer = true;
-      script.id = 'google-identity';
+      script.id = "google-identity";
       document.body.appendChild(script);
     }
   }
@@ -303,47 +304,47 @@ const ReportPage: React.FC = () => {
       selectedRows.length > 0 ? selectedRows.map((idx) => rows[idx]) : [];
 
     if (exportRows.length === 0) {
-      alert('Please select at least one row to export.');
+      alert("Please select at least one row to export.");
       return;
     }
 
     /// Create workbook and worksheet
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Data');
+    const worksheet = workbook.addWorksheet("Data");
 
     // Add header row
     const headerRow = worksheet.addRow(columns);
 
     // Style header
     headerRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 12 };
+      cell.font = { bold: true, color: { argb: "FF1F4E79" }, size: 12 };
       cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFEFEFEF' },
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFEFEFEF" },
       };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
       cell.border = {
-        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-        right: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+        top: { style: "thin", color: { argb: "FFCCCCCC" } },
+        left: { style: "thin", color: { argb: "FFCCCCCC" } },
+        bottom: { style: "thin", color: { argb: "FFCCCCCC" } },
+        right: { style: "thin", color: { argb: "FFCCCCCC" } },
       };
     });
 
     // Freeze header
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
     // Add data rows
     exportRows.forEach((row, rowIdx) => {
-      const valueRow = worksheet.addRow(columns.map((key) => row[key] ?? ''));
+      const valueRow = worksheet.addRow(columns.map((key) => row[key] ?? ""));
       valueRow.eachCell((cell) => {
         cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: rowIdx % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9' },
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: rowIdx % 2 === 0 ? "FFFFFFFF" : "FFF9F9F9" },
         };
-        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        cell.alignment = { horizontal: "left", vertical: "middle" };
       });
     });
 
@@ -352,7 +353,7 @@ const ReportPage: React.FC = () => {
       if (!column) return;
       let maxLength = 10;
       column.eachCell({ includeEmpty: true }, (cell) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
+        const cellValue = cell.value ? cell.value.toString() : "";
         maxLength = Math.max(maxLength, cellValue.length);
       });
       column.width = maxLength + 2;
@@ -361,12 +362,12 @@ const ReportPage: React.FC = () => {
     // Generate Excel file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'ExportedData.xlsx';
+    a.download = "ExportedData.xlsx";
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -383,11 +384,11 @@ const ReportPage: React.FC = () => {
   const handleSort = (field: string) => {
     if (sortField === field) {
       // Toggle direction if clicking the same field
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       // Set new field and default to ascending
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
@@ -406,40 +407,40 @@ const ReportPage: React.FC = () => {
     try {
       // Load the auth2 library if not loaded
       if (!gapi.auth2) {
-        console.log('Auth2 not initialized, loading gapi...');
+        console.log("Auth2 not initialized, loading gapi...");
         await new Promise<void>((resolve) => {
-          gapi.load('client:auth2', resolve);
+          gapi.load("client:auth2", resolve);
         });
 
         // Initialize the client
         await gapi.client.init({
-          apiKey: 'AIzaSyBrv7EsmH7ic6Y7854ysCAFkiy8qgo_bm8',
+          apiKey: "AIzaSyBrv7EsmH7ic6Y7854ysCAFkiy8qgo_bm8",
           clientId:
-            '756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com',
+            "756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com",
           discoveryDocs: [
-            'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+            "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
           ],
-          scope: 'https://www.googleapis.com/auth/drive.file',
+          scope: "https://www.googleapis.com/auth/drive.file",
         });
       }
 
       const authInstance = gapi.auth2.getAuthInstance();
-      console.log('Auth instance:', authInstance);
-      console.log('Is signed in:', authInstance.isSignedIn.get());
+      console.log("Auth instance:", authInstance);
+      console.log("Is signed in:", authInstance.isSignedIn.get());
 
       if (!authInstance.isSignedIn.get()) {
-        console.log('User not signed in, requesting sign-in...');
+        console.log("User not signed in, requesting sign-in...");
         // Use Promise to handle async sign-in
         await new Promise<void>((resolve, reject) => {
           authInstance
             .signIn()
             .then(() => {
-              console.log('Sign in successful');
+              console.log("Sign in successful");
               setIsGoogleAuthenticated(true);
               resolve();
             })
             .catch((error: any) => {
-              console.error('Sign in failed:', error);
+              console.error("Sign in failed:", error);
               reject(error);
             });
         });
@@ -447,7 +448,7 @@ const ReportPage: React.FC = () => {
 
       return true;
     } catch (error) {
-      console.error('Error during Google authentication:', error);
+      console.error("Error during Google authentication:", error);
       return false;
     }
   };
@@ -462,47 +463,47 @@ const ReportPage: React.FC = () => {
       selectedRows.length > 0 ? selectedRows.map((idx) => rows[idx]) : [];
 
     if (exportRows.length === 0) {
-      alert('Please select at least one row to export.');
+      alert("Please select at least one row to export.");
       return;
     }
 
     // Create workbook and worksheet
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Data');
+    const worksheet = workbook.addWorksheet("Data");
 
     // Add header row (once only)
     const headerRow = worksheet.addRow(columns);
 
     // Apply header style
     headerRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 12 }; // Dark blue text
+      cell.font = { bold: true, color: { argb: "FF1F4E79" }, size: 12 }; // Dark blue text
       cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFEFEFEF' }, // Light gray background
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFEFEFEF" }, // Light gray background
       };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
       cell.border = {
-        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-        right: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+        top: { style: "thin", color: { argb: "FFCCCCCC" } },
+        left: { style: "thin", color: { argb: "FFCCCCCC" } },
+        bottom: { style: "thin", color: { argb: "FFCCCCCC" } },
+        right: { style: "thin", color: { argb: "FFCCCCCC" } },
       };
     });
 
     // Freeze header row
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
     // Add data rows
     exportRows.forEach((row, rowIdx) => {
-      const valueRow = worksheet.addRow(columns.map((key) => row[key] ?? ''));
+      const valueRow = worksheet.addRow(columns.map((key) => row[key] ?? ""));
 
       // Optional: zebra striping (alternate row colors)
       valueRow.eachCell((cell) => {
         cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: rowIdx % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9' },
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: rowIdx % 2 === 0 ? "FFFFFFFF" : "FFF9F9F9" },
         };
       });
     });
@@ -510,7 +511,7 @@ const ReportPage: React.FC = () => {
     // Generate the Excel file as a Blob
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
     if (
@@ -518,29 +519,29 @@ const ReportPage: React.FC = () => {
       !window.google.accounts ||
       !window.google.accounts.oauth2
     ) {
-      alert('Google API not loaded. Please try again in a few seconds.');
+      alert("Google API not loaded. Please try again in a few seconds.");
       return;
     }
 
     window.google.accounts.oauth2
       .initTokenClient({
         client_id:
-          '756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com',
-        scope: 'https://www.googleapis.com/auth/drive.file',
+          "756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com",
+        scope: "https://www.googleapis.com/auth/drive.file",
         callback: async (tokenResponse: { access_token: any }) => {
           if (!tokenResponse?.access_token) {
-            alert('Google authentication failed.');
+            alert("Google authentication failed.");
             return;
           }
 
           const accessToken = tokenResponse.access_token;
-          const fileName = '1.Clearance Follow Up SAMPLE.xlsx';
+          const fileName = "1.Clearance Follow Up SAMPLE.xlsx";
 
           try {
             // STEP 1: Check if file already exists
             const searchRes = await fetch(
               `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and trashed=false&fields=files(id,name)`,
-              { headers: { Authorization: `Bearer ${accessToken}` } }
+              { headers: { Authorization: `Bearer ${accessToken}` } },
             );
             const searchData = await searchRes.json();
 
@@ -548,24 +549,26 @@ const ReportPage: React.FC = () => {
             const metadata = {
               name: fileName,
               mimeType:
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             };
 
             const formData = new FormData();
             formData.append(
-              'metadata',
-              new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+              "metadata",
+              new Blob([JSON.stringify(metadata)], {
+                type: "application/json",
+              }),
             );
-            formData.append('file', blob);
+            formData.append("file", blob);
 
             let uploadUrl =
-              'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-            let method = 'POST'; // default = create
+              "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+            let method = "POST"; // default = create
 
             if (existingFile) {
               // STEP 2: If file exists, update it instead of creating
               uploadUrl = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`;
-              method = 'PATCH';
+              method = "PATCH";
             }
 
             // STEP 3: Upload or update file
@@ -578,19 +581,19 @@ const ReportPage: React.FC = () => {
             if (uploadRes.ok) {
               alert(
                 existingFile
-                  ? 'File replaced successfully in Google Drive.'
-                  : 'File uploaded successfully to Google Drive.'
+                  ? "File replaced successfully in Google Drive."
+                  : "File uploaded successfully to Google Drive.",
               );
             } else {
               const errorData = await uploadRes.json();
               alert(
-                'Upload failed: ' +
-                  (errorData.error?.message || uploadRes.statusText)
+                "Upload failed: " +
+                  (errorData.error?.message || uploadRes.statusText),
               );
             }
           } catch (err) {
-            console.error('Drive upload error:', err);
-            alert('An error occurred while uploading to Google Drive.');
+            console.error("Drive upload error:", err);
+            alert("An error occurred while uploading to Google Drive.");
           }
         },
       })
@@ -598,21 +601,21 @@ const ReportPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '100%', mx: 'auto', mt: 4, position: 'relative' }}>
+    <Box sx={{ maxWidth: "100%", mx: "auto", mt: 4, position: "relative" }}>
       {/* Header Paper similar to EmployeeDataFormPage */}
       <Paper sx={{ mb: 4, p: 2 }}>
         <Box
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             mb: 2,
           }}
         >
           <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
             Shipment Records
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: "flex", gap: 1 }}>
             <Button
               variant="outlined"
               onClick={handleExportNewExcel}
@@ -638,8 +641,8 @@ const ReportPage: React.FC = () => {
         <Divider sx={{ my: 2 }} />
         <Box
           sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
+            display: "flex",
+            flexWrap: "wrap",
             gap: 2,
             mb: 2,
           }}
@@ -647,8 +650,8 @@ const ReportPage: React.FC = () => {
           <Box
             sx={{
               flexGrow: 1,
-              minWidth: '200px',
-              maxWidth: isMobile ? '100%' : '220px',
+              minWidth: "200px",
+              maxWidth: isMobile ? "100%" : "220px",
             }}
           >
             <TextField
@@ -665,60 +668,60 @@ const ReportPage: React.FC = () => {
             <Box
               sx={{
                 flexGrow: 1,
-                minWidth: '200px',
-                maxWidth: isMobile ? '100%' : '220px',
+                minWidth: "200px",
+                maxWidth: isMobile ? "100%" : "220px",
               }}
             >
               <DatePicker
                 label="B/L Date"
                 value={blDate ? dayjs(blDate) : null}
                 onChange={(date) =>
-                  setBlDate(date ? date.format('YYYY-MM-DD') : null)
+                  setBlDate(date ? date.format("YYYY-MM-DD") : null)
                 }
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
               />
             </Box>
             <Box
               sx={{
                 flexGrow: 1,
-                minWidth: '200px',
-                maxWidth: isMobile ? '100%' : '220px',
+                minWidth: "200px",
+                maxWidth: isMobile ? "100%" : "220px",
               }}
             >
               <DatePicker
                 label="CO Date"
                 value={coDate ? dayjs(coDate) : null}
                 onChange={(date) =>
-                  setCoDate(date ? date.format('YYYY-MM-DD') : null)
+                  setCoDate(date ? date.format("YYYY-MM-DD") : null)
                 }
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
               />
             </Box>
             <Box
               sx={{
                 flexGrow: 1,
-                minWidth: '200px',
-                maxWidth: isMobile ? '100%' : '220px',
+                minWidth: "200px",
+                maxWidth: isMobile ? "100%" : "220px",
               }}
             >
               <DatePicker
                 label="Rcv Date"
                 value={rcvDate ? dayjs(rcvDate) : null}
                 onChange={(date) =>
-                  setRcvDate(date ? date.format('YYYY-MM-DD') : null)
+                  setRcvDate(date ? date.format("YYYY-MM-DD") : null)
                 }
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
               />
             </Box>
           </LocalizationProvider>
 
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             <Button
               variant="outlined"
               color="inherit"
               size="small"
               onClick={() => {
-                setSearchText('');
+                setSearchText("");
                 setBlDate(null);
                 setCoDate(null);
                 setRcvDate(null);
@@ -733,7 +736,7 @@ const ReportPage: React.FC = () => {
         <TableContainer sx={{ mb: 2 }}>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: "#f5f5f5" }}>
                 <TableCell padding="checkbox">
                   <Checkbox
                     checked={
@@ -763,11 +766,11 @@ const ReportPage: React.FC = () => {
                       onClick={() => handleSort(col)}
                       sx={{
                         fontWeight: 600,
-                        cursor: 'pointer',
-                        userSelect: 'none',
+                        cursor: "pointer",
+                        userSelect: "none",
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
                         {col}
                         {sortField === col && (
                           <SortIcon
@@ -775,10 +778,10 @@ const ReportPage: React.FC = () => {
                             sx={{
                               ml: 0.5,
                               transform:
-                                sortDirection === 'desc'
-                                  ? 'rotate(180deg)'
-                                  : 'none',
-                              fontSize: '16px',
+                                sortDirection === "desc"
+                                  ? "rotate(180deg)"
+                                  : "none",
+                              fontSize: "16px",
                               opacity: 0.7,
                             }}
                           />
@@ -795,8 +798,8 @@ const ReportPage: React.FC = () => {
                   key={idx}
                   onClick={() => handleRowClick(row)}
                   sx={{
-                    cursor: 'pointer',
-                    '&:hover': { backgroundColor: '#f9f9fb' },
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "#f9f9fb" },
                   }}
                 >
                   <TableCell
@@ -811,7 +814,7 @@ const ReportPage: React.FC = () => {
                           setSelectedRows([...selectedRows, idx]);
                         } else {
                           setSelectedRows(
-                            selectedRows.filter((i) => i !== idx)
+                            selectedRows.filter((i) => i !== idx),
                           );
                         }
                       }}
@@ -831,10 +834,10 @@ const ReportPage: React.FC = () => {
                   <TableCell
                     colSpan={
                       columns.filter(
-                        (col) => !isMobile || columns.includes(col)
+                        (col) => !isMobile || columns.includes(col),
                       ).length + 1
                     }
-                    sx={{ textAlign: 'center', py: 3 }}
+                    sx={{ textAlign: "center", py: 3 }}
                   >
                     <Typography variant="body2">No records found</Typography>
                   </TableCell>
@@ -845,7 +848,7 @@ const ReportPage: React.FC = () => {
         </TableContainer>
 
         {/* Pagination */}
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <Pagination
             count={Math.ceil(totalRows / PAGE_SIZE)}
             page={page}
@@ -859,12 +862,12 @@ const ReportPage: React.FC = () => {
       {loading && (
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            alignItems: 'center',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            alignItems: "center",
             gap: 1,
           }}
         >
