@@ -102,7 +102,7 @@ const EmployeeDataFormContainer: React.FC = () => {
   const [jobsConverted, setJobsConverted] = useState(false);
 
   // Fetch total count (optional, for pagination UI)
-  const convertJobs = async () => {
+  const convertJobs = useCallback(async () => {
     if (jobsConverted) return; // Skip if already done
 
     setLoading(true);
@@ -133,7 +133,7 @@ const EmployeeDataFormContainer: React.FC = () => {
       }
 
       // Commit any remaining updates
-      if (updatedCount % 500 !== 0) {
+      if (updatedCount % 500 !== 0 && updatedCount > 0) {
         await batch.commit();
       }
 
@@ -147,7 +147,7 @@ const EmployeeDataFormContainer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobsConverted]);
 
   useEffect(() => {
     convertJobs();
