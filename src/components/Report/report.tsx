@@ -15,7 +15,6 @@ import {
   TableContainer,
   Checkbox,
   CircularProgress,
-  Stack,
 } from "@mui/material";
 import {
   getDocs,
@@ -57,7 +56,7 @@ const ReportPage: React.FC = () => {
   const [filteredRows, setFilteredRows] = useState<Record<string, any>[]>([]);
   const [page, setPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
-  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [ setLastDoc] = useState<any>(null);
   const [searchText, setSearchText] = useState("");
   const [blDate, setBlDate] = useState<string | null>(null);
   const [coDate, setCoDate] = useState<string | null>(null);
@@ -67,12 +66,13 @@ const ReportPage: React.FC = () => {
   const [jobsConverted, setJobsConverted] = useState(false);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [tokenClient, setTokenClient] = useState<any>(null);
+  const [ setTokenClient] = useState<any>(null);
   const googleScriptLoaded = useRef(false);
   const [isGoogleAuthenticated, setIsGoogleAuthenticated] = useState(false);
 
   // Function to convert Job fields from string to number
   const convertJobs = async () => {
+    console.log("Checking and converting Job fields if needed...", isGoogleAuthenticated);
     if (jobsConverted) return; // Skip if already done
 
     setLoading(true);
@@ -402,62 +402,7 @@ const ReportPage: React.FC = () => {
     initGoogleApi();
   }, [initGoogleApi]);
 
-  // Replace the handleGoogleAuth function
-  const handleGoogleAuth = async () => {
-    try {
-      // Load the auth2 library if not loaded
-      if (!gapi.auth2) {
-        console.log("Auth2 not initialized, loading gapi...");
-        await new Promise<void>((resolve) => {
-          gapi.load("client:auth2", resolve);
-        });
-
-        // Initialize the client
-        await gapi.client.init({
-          apiKey: "AIzaSyBrv7EsmH7ic6Y7854ysCAFkiy8qgo_bm8",
-          clientId:
-            "756046169704-piuq4qipnshpv1bqe2jt4327pisccbvv.apps.googleusercontent.com",
-          discoveryDocs: [
-            "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
-          ],
-          scope: "https://www.googleapis.com/auth/drive.file",
-        });
-      }
-
-      const authInstance = gapi.auth2.getAuthInstance();
-      console.log("Auth instance:", authInstance);
-      console.log("Is signed in:", authInstance.isSignedIn.get());
-
-      if (!authInstance.isSignedIn.get()) {
-        console.log("User not signed in, requesting sign-in...");
-        // Use Promise to handle async sign-in
-        await new Promise<void>((resolve, reject) => {
-          authInstance
-            .signIn()
-            .then(() => {
-              console.log("Sign in successful");
-              setIsGoogleAuthenticated(true);
-              resolve();
-            })
-            .catch((error: any) => {
-              console.error("Sign in failed:", error);
-              reject(error);
-            });
-        });
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Error during Google authentication:", error);
-      return false;
-    }
-  };
-
-  // Replace the Google Drive export function with this improved version
-  // Replace the handleExportToGoogleDrive function with this simpler version
-
   // Update the handleExportToGoogleDrive function for direct upload
-
   const handleExportToGoogleDrive = async () => {
     const exportRows =
       selectedRows.length > 0 ? selectedRows.map((idx) => rows[idx]) : [];

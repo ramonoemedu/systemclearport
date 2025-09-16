@@ -92,13 +92,13 @@ const EmployeeDataFormContainer: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [setLastDoc] = useState<any>(null);
-  const [totalRows, setTotalRows] = useState(0);
+  const [totalRows] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [filteredRows, setFilteredRows] = useState(rows);
   const [blDate, setBlDate] = useState<string | null>(null);
   const [coDate, setCoDate] = useState<string | null>(null);
   const [rcvDate, setRcvDate] = useState<string | null>(null);
-  const [importProgress, setImportProgress] = useState<number | null>(null);
+  const [importProgress] = useState<number | null>(null);
   const [jobsConverted, setJobsConverted] = useState(false);
 
   // Fetch total count (optional, for pagination UI)
