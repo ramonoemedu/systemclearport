@@ -1,7 +1,32 @@
 // filepath: /src/utils/keySanitizer.ts
 
+export const dateFields = [
+  "B/L Date",
+  "INV & PKL Date",
+  "CO Date",
+  "Rcv Date",
+  "ETA/ETD",
+  "Received Date",
+  "LOAD ON",
+  "IM8 DATE",
+  "TP DATE",
+  "IM7 DATE",
+  "SR DATE",
+  "CV DATE",
+  "IM4 DATE",
+  "EX3 DATE",
+];
 
-  export  const sanitizeKey = (key: string) =>
+export const dropdownFields: Record<string, string[]> = {
+  "Imp/Exp": ["IMPORT", "EXPORT"],
+  "Ship'm Mode": ["SEA", "AIR", "LAND"],
+  "Vssl/Truck": ["VSSL", "TRUCK"],
+};
+
+
+export const PAGE_SIZE = 20;
+
+export const sanitizeKey = (key: string) =>
   key
     .replace(/[.~*/[\] ]/g, "_")
     .replace("B/L", "B_L")

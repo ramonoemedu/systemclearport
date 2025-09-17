@@ -23,32 +23,10 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Paper from "@mui/material/Paper";
 import LinearProgress from "@mui/material/LinearProgress";
-import { columns } from "../../utils/KeySanitizer";
+import { columns, dateFields, dropdownFields, PAGE_SIZE, sanitizeKey, unsanitizeKey } from "../../utils/KeySanitizer";
 
 
 
-const dateFields = [
-  "B/L Date",
-  "INV & PKL Date",
-  "CO Date",
-  "Rcv Date",
-  "ETA/ETD",
-  "Received Date",
-  "LOAD ON",
-  "IM8 DATE",
-  "TP DATE",
-  "IM7 DATE",
-  "SR DATE",
-  "CV DATE",
-  "IM4 DATE",
-  "EX3 DATE",
-];
-
-const dropdownFields: Record<string, string[]> = {
-  "Imp/Exp": ["IMPORT", "EXPORT"],
-  "Ship'm Mode": ["SEA", "AIR", "LAND"],
-  "Vssl/Truck": ["VSSL", "TRUCK"],
-};
 
 const initialForm = columns.reduce((acc, col) => {
   if (dateFields.includes(col)) {
@@ -61,28 +39,8 @@ const initialForm = columns.reduce((acc, col) => {
   return acc;
 }, {} as Record<string, string>);
 
-const sanitizeKey = (key: string) =>
-  key
-    .replace(/[.~*/[\] ]/g, "_")
-    .replace("B/L", "B_L")
-    .replace("CBM/CIF", "CBM_CIF")
-    .replace("ETA/ETD", "ETA_ETD")
-    .replace("INV & PKL Date", "INV_PKL_Date")
-    .replace("Imp/Exp", "Imp_Exp")
-    .replace("Vssl/Truck", "Vssl_Truck");
 
-const unsanitizeKey = (key: string) =>
-  key
-    .replace(/_/g, " ")
-    .replace("B L No", "B/L No")
-    .replace("B L Date", "B/L Date")
-    .replace("CBM CIF", "CBM/CIF")
-    .replace("ETA ETD", "ETA/ETD")
-    .replace("INV PKL Date", "INV & PKL Date")
-    .replace("Imp Exp", "Imp/Exp")
-    .replace("Vssl Truck", "Vssl/Truck");
 
-const PAGE_SIZE = 20;
 
 const EmployeeDataFormContainer: React.FC = () => {
   const [rows, setRows] = useState<Record<string, string | number>[]>([]);
@@ -92,7 +50,7 @@ const EmployeeDataFormContainer: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [setLastDoc] = useState<any>(null);
-  const [totalRows] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [filteredRows, setFilteredRows] = useState(rows);
   const [blDate, setBlDate] = useState<string | null>(null);
@@ -109,6 +67,7 @@ const EmployeeDataFormContainer: React.FC = () => {
     try {
       const snapshot = await getDocs(collection(db, "employeeData"));
       let updatedCount = 0;
+        setTotalRows(snapshot.size);
       const batch = writeBatch(db);
 
       for (const docSnapshot of snapshot.docs) {
@@ -147,7 +106,7 @@ const EmployeeDataFormContainer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [jobsConverted]);
+  }, [jobsConverted, setTotalRows]);
 
   useEffect(() => {
     convertJobs();

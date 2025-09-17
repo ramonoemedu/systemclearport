@@ -1,15 +1,5 @@
 // Utility functions for Report component: data fetch/convert, filter/sort, excel creation, Drive upload
 import * as XLSX from "xlsx";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  writeBatch,
-  doc,
-} from "firebase/firestore";
-import { sanitizeKey, unsanitizeKey } from "../../utils/KeySanitizer";
 type RowObject = Record<string, any>;
 type Filters = {
   searchText?: string;
@@ -17,8 +7,6 @@ type Filters = {
   coDate?: string | null;
   rcvDate?: string | null;
 };
-
-const PAGE_SIZE_DEFAULT = 20;
 
 /** Load Google Identity Services script (idempotent) */
 export async function ensureGoogleIdentityLoaded(): Promise<void> {
@@ -47,63 +35,81 @@ export async function ensureGoogleIdentityLoaded(): Promise<void> {
 }
 
 /** Convert "Job" fields that are strings to numbers (batch update). Returns number updated. */
-export async function convertJobs(db: any): Promise<number> {
-  const snapshot = await getDocs(collection(db, "employeeData"));
-  const batch = writeBatch(db);
-  let updatedCount = 0;
+// export async function convertJobs(db: any): Promise<number> {
+//   const snapshot = await getDocs(collection(db, "employeeData"));
+//   const batch = writeBatch(db);
+//   let updatedCount = 0;
 
-  for (const docSnap of snapshot.docs) {
-    const data = docSnap.data();
-    const jobKey = sanitizeKey("Job");
-    if (
-      data[jobKey] &&
-      typeof data[jobKey] === "string" &&
-      !isNaN(Number(data[jobKey]))
-    ) {
-      batch.update(doc(db, "employeeData", docSnap.id), {
-        [jobKey]: Number(data[jobKey]),
-      });
-      updatedCount++;
-      if (updatedCount % 500 === 0) {
-        await batch.commit();
-      }
-    }
-  }
+//   for (const docSnap of snapshot.docs) {
+//     const data = docSnap.data();
+//     const jobKey = sanitizeKey("Job");
+//     if (
+//       data[jobKey] &&
+//       typeof data[jobKey] === "string" &&
+//       !isNaN(Number(data[jobKey]))
+//     ) {
+//       batch.update(doc(db, "employeeData", docSnap.id), {
+//         [jobKey]: Number(data[jobKey]),
+//       });
+//       updatedCount++;
+//       if (updatedCount % 500 === 0) {
+//         await batch.commit();
+//       }
+//     }
+//   }
 
-  if (updatedCount % 500 !== 0 && updatedCount > 0) {
-    await batch.commit();
-  }
+//   if (updatedCount % 500 !== 0 && updatedCount > 0) {
+//     await batch.commit();
+//   }
 
-  return updatedCount;
-}
+//   return updatedCount;
+// }
 
 /** Fetch rows (basic): paginated + sorted by Job desc by default.
  *  Returns mapped rows (unsanitized keys) and lastDoc (Firestore doc snapshot)
  */
-export async function fetchRows(
-  db: any,
-  pageNum = 1,
-  pageSize = PAGE_SIZE_DEFAULT,
-  sortFieldSanitized = sanitizeKey("Job"),
-  sortDir: "asc" | "desc" = "desc"
-): Promise<{ rows: RowObject[]; lastDoc: any | null }> {
-  const q = query(
-    collection(db, "employeeData"),
-    orderBy(sortFieldSanitized, sortDir),
-    limit(pageSize)
-  );
-  const snapshot = await getDocs(q);
-  const rows: RowObject[] = snapshot.docs.map((d) => {
-    const raw = d.data();
-    const mapped: RowObject = { id: d.id };
-    for (const k of Object.keys(raw)) {
-      mapped[unsanitizeKey(k)] = raw[k];
-    }
-    return mapped;
-  });
-  const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
-  return { rows, lastDoc };
-}
+// Return type and object property both use totalNumber
+// export async function fetchRows(
+//   db: any,
+//   pageNum = 1,
+//   pageSize = PAGE_SIZE_DEFAULT,
+//   sortFieldSanitized = sanitizeKey("Job"),
+//   sortDir: "asc" | "desc" = "desc",
+//   startAfterDoc: any | null = null
+// ): Promise<{ rows: RowObject[]; lastDoc: any | null; totalNumber: number }> {
+//   // server-side query for the page
+//   const constraints: any[] = [orderBy(sortFieldSanitized, sortDir)];
+//    if (startAfterDoc) constraints.push(startAfter(startAfterDoc));
+//     constraints.push(limit(pageSize));
+// const q = query(collection(db, "employeeData"), ...constraints);
+//    const snapshot = await getDocs(q);
+
+//   const rows: RowObject[] = snapshot.docs.map((d) => {
+//     const raw = d.data();
+//     const mapped: RowObject = { id: d.id };
+//     for (const k of Object.keys(raw)) {
+//       mapped[unsanitizeKey(k)] = raw[k];
+//     }
+//     return mapped;
+//   });
+
+//   const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+
+//   // Get total count for the collection (matching the base query). Uses aggregation
+//   // (requires Firebase JS SDK that supports getCountFromServer)
+//   let totalNumber = rows.length;
+//   try {
+//     const countQuery = query(collection(db, "employeeData"));
+//     const countSnapshot = await getCountFromServer(countQuery);
+//     totalNumber = Number(countSnapshot.data().count || totalNumber);
+//   } catch (err) {
+//     // fall back to page length if count aggregation not available
+//     console.warn("Could not get total count from server, falling back to page length", err);
+//   }
+
+//   return { rows, lastDoc, totalNumber };
+// }
+
 
 /** Filter and sort rows in-memory */
 export function filterAndSortRows(
