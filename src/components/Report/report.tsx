@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -60,7 +60,7 @@ const ReportPage: React.FC = () => {
   // --- Data states ---
   const [rows, setRows] = useState<Record<string, string | number>[]>([]);
 
-  // const [apiRows, setApiRows] = useState<Record<string, any>[]>([]); // rows returned from Firestore
+
   const [displayedRows, setDisplayedRows] = useState<Record<string, any>[]>([]); // rows after client-side filtering (if any)
   const [page, setPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
@@ -70,13 +70,7 @@ const ReportPage: React.FC = () => {
   const [cursors, setCursors] = useState<(QueryDocumentSnapshot<DocumentData> | null)[]>([null]);
 
 
-  // sync refs whenever states change
-  // useEffect(() => {
-  //   pageCursorsRef.current = pageCursors;
-  // }, [pageCursors]);
-  // useEffect(() => {
-  //   pageCacheRef.current = pageCache;
-  // }, [pageCache]);
+
 
   // --- UI / filter state ---
   const [searchText, setSearchText] = useState("");
@@ -93,24 +87,7 @@ const ReportPage: React.FC = () => {
 
   const [jobsConverted, setJobsConverted] = useState(false);
 
-  // --- Debounce search input ---
-  // useEffect(() => {
-  //   window.clearTimeout(debounceRef.current);
-  //   debounceRef.current = window.setTimeout(() => {
-  //     setDebouncedSearch(searchText.trim());
-  //   }, 300);
-  //   return () => window.clearTimeout(debounceRef.current);
-  // }, [searchText]);
 
-  // --- Reset cache when filters/sort change ---
-  // useEffect(() => {
-  //   // reset pagination & caches when filters/sort change
-  //   setPageCursors([]);
-  //   pageCursorsRef.current = [];
-  //   setPageCache({});
-  //   pageCacheRef.current = {};
-  //   filtersKeyRef.current = ""; // force count refetch
-  // }, [debouncedSearch, blDate, coDate, rcvDate, sortField, sortDirection]);
 
   // Fetch total count (optional, for pagination UI)
   const convertJobs = useCallback(async () => {
@@ -228,134 +205,7 @@ const ReportPage: React.FC = () => {
     fetchRows(page);
   }, [page, fetchRows]);
 
-  // --- Build a stable filters key (used for cache + counting) ---
-  // const buildFiltersKey = useCallback(() => {
-  //   return JSON.stringify({
-  //     s: debouncedSearch,
-  //     bl: blDate,
-  //     co: coDate,
-  //     rc: rcvDate,
-  //     sf: sortField ?? "Job",
-  //     sd: sortDirection,
-  //   });
-  // }, [debouncedSearch, blDate, coDate, rcvDate, sortField, sortDirection]);
 
-  //   const fetchTotalCountIfNeeded = useCallback(
-  //   async (whereConstraints: QueryConstraint[]) => {
-  //     const newKey = buildFiltersKey();
-  //     if (filtersKeyRef.current === newKey && totalRows > 0) return;
-  //     filtersKeyRef.current = newKey;
-
-  //     try {
-  //       const countQuery = query(collection(db, "employeeData"), ...whereConstraints);
-  //       const countSnap = await getCountFromServer(countQuery as any);
-  //       const cnt = Number(countSnap.data().count || 0);
-  //       console.log("✅ Total count fetched:", cnt);
-  //       // setTotalRows(cnt);
-  //     } catch (err) {
-  //       console.warn("⚠️ Count fetch failed (will estimate):", err);
-  //       // fallback: use ref instead of undefined variable
-  //       const estimated =
-  //         (page - 1) * PAGE_SIZE +
-  //         (pageCacheRef.current[page]?.length ?? rowsRef.current.length);
-  //       // setTotalRows((prev) => Math.max(prev, estimated));
-  //     }
-  //   },
-  //   [buildFiltersKey, page, totalRows] // rowsRef.current not needed in deps
-  // );
-
-
-  // --- Fetch page (stable callback) ---
-  // const fetchPage = useCallback(
-  //   async (pageNum: number = 1) => {
-  //     const filtersKey = buildFiltersKey();
-
-  //     // cache hit?
-  //     const cacheHit = pageCacheRef.current[pageNum];
-  //     if (cacheHit && filtersKeyRef.current === filtersKey) {
-  //       setApiRows(cacheHit);
-  //       // setTotalRows((prev) => Math.max(prev, (pageNum - 1) * PAGE_SIZE + cacheHit.length));
-  //       return;
-  //     }
-
-  //     // mark current filters key
-  //     filtersKeyRef.current = filtersKey;
-
-  //     setLoading(true);
-  //     try {
-  //       const whereConstraints: QueryConstraint[] = [];
-  //       if (blDate) where(sanitizeKey("B/L Date"), "==", blDate);
-  //       if (coDate) where(sanitizeKey("CO Date"), "==", coDate);
-  //       if (rcvDate) where(sanitizeKey("Rcv Date"), "==", rcvDate);
-  //       if (debouncedSearch) {
-  //         const fieldSan = sanitizeKey(SEARCH_FIELD);
-  //         where(fieldSan, ">=", debouncedSearch);
-  //         where(fieldSan, "<=", debouncedSearch + "\uf8ff");
-  //       }
-
-  //       const orderByField = sanitizeKey(sortField ?? "Job");
-  //       const constraints: QueryConstraint[] = [
-  //         ...whereConstraints,
-  //         orderBy(orderByField, sortDirection),
-  //       ];
-
-  //       const startAfterDoc = pageNum > 1 ? pageCursorsRef.current[pageNum - 2] ?? null : null;
-  //       if (startAfterDoc) constraints.push(startAfter(startAfterDoc));
-  //       constraints.push(limit(PAGE_SIZE));
-
-  //       console.log("Running Firestore query for page", pageNum, "constraints:", constraints);
-
-  //       const q = query(collection(db, "employeeData"), ...constraints);
-  //       const snapshot: QuerySnapshot<DocumentData> = await getDocs(q);
-  //         setTotalRows(snapshot.size);
-
-  //       const data = snapshot.docs.map((d) => {
-  //         const raw = d.data();
-  //         return {
-  //           id: d.id,
-  //           ...Object.fromEntries(Object.entries(raw).map(([k, v]) => [unsanitizeKey(k), v])),
-  //         };
-  //       });
-
-  //       setApiRows(data);
-
-  //       const newLastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
-  //       setLastDoc(newLastDoc);
-
-  //       // update state + refs for cursors & cache
-  //       setPageCursors((prev) => {
-  //         const next = [...prev];
-  //         next[pageNum - 1] = newLastDoc;
-  //         pageCursorsRef.current = next;
-  //         return next;
-  //       });
-  //       setPageCache((prev) => {
-  //         const next = { ...prev, [pageNum]: data };
-  //         pageCacheRef.current = next;
-  //         return next;
-  //       });
-
-  //       // only fetch total count when on first page (or filters changed)
-  //       // if (pageNum === 1) {
-  //       //   await fetchTotalCountIfNeeded(whereConstraints);
-  //       // }
-  //     } catch (err) {
-  //       console.error("Error fetching employee data:", err);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [lastDoc, buildFiltersKey, blDate, coDate, rcvDate, debouncedSearch, sortField, sortDirection, 
-  //     // fetchTotalCountIfNeeded
-  //   ]
-  //   // intentionally no pageCache/pageCursors in deps; refs handle mutable access
-  // );
-
-  // --- Trigger fetch when page changes or filters change (page already reset on filter change) ---
-  // useEffect(() => {
-  //   fetchPage(page);
-  // }, [page, fetchPage]);
 
   // --- Client-side filtering for displayedRows (pure derived state) ---
   // This avoids mutating the fetched apiRows inside an effect that depends on apiRows (we use useMemo instead).

@@ -473,84 +473,6 @@ const EmployeeDataFormContainer: React.FC = () => {
     setEditIndex(null);
     setDialogOpen(true);
   };
-  // const excelDateFields = [
-  //   "B/L Date",
-  //   "ETA/ETD",
-  //   "CO Date",
-  //   "INV & PKL Date",
-  //   "Rcv Date",
-  //   "IM8 DATE",
-  //   "Received Date",
-  //   "LOAD ON",
-  //   "TP DATE",
-  //   "IM7 DATE",
-  //   "SR DATE",
-  //   "CV DATE",
-  //   "IM4 DATE",
-  //   "EX3 DATE",
-  // ];
-  // const importExcelToFirestore = async () => {
-  //   try {
-  //     setImportProgress(0); // Start progress
-  //     const response = await fetch("/assets/1.Clearance Follow Up SAMPLE.xlsx");
-  //     const arrayBuffer = await response.arrayBuffer();
-  //     const workbook = XLSX.read(arrayBuffer, { type: "array" });
-  //     const worksheet = workbook.Sheets["DATA"];
-  //     if (!worksheet) {
-  //       alert("Sheet named 'DATA' not found!");
-  //       setImportProgress(null);
-  //       return;
-  //     }
-  //     const range = XLSX.utils.decode_range(worksheet["!ref"] || "");
-  //     const header: string[] = [];
-  //     for (let col = 0; col <= range.e.c; col++) {
-  //       const cellAddress = XLSX.utils.encode_cell({ r: range.s.r, c: col });
-  //       const cell = worksheet[cellAddress];
-  //       header.push(cell ? cell.v : `Column${col + 1}`);
-  //     }
-  //     const rows: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, {
-  //       header: header,
-  //       range: XLSX.utils.encode_range(
-  //         { r: range.s.r + 1, c: 0 },
-  //         { r: range.e.r, c: range.e.c }
-  //       ),
-  //       defval: "",
-  //     });
-
-  //     for (let i = 0; i < rows.length; i++) {
-  //       const row = rows[i];
-  //       const sanitizedRow: Record<string, any> = {};
-  //       Object.entries(row).forEach(([key, value]) => {
-  //         if (excelDateFields.includes(key) && value) {
-  //           let formattedDate = "";
-  //           if (typeof value === "number") {
-  //             const date = new Date(Math.round((value - 25569) * 86400 * 1000));
-  //             formattedDate = dayjs(date).format("DD-MM-YYYY");
-  //           } else if (
-  //             typeof value === "string" &&
-  //             dayjs(value, ["YYYY-MM-DD", "DD-MM-YYYY", "MM/DD/YYYY"], true).isValid()
-  //           ) {
-  //             formattedDate = dayjs(value).format("DD-MM-YYYY");
-  //           } else {
-  //             formattedDate = value;
-  //           }
-  //           sanitizedRow[sanitizeKey(key)] = formattedDate;
-  //         } else {
-  //           sanitizedRow[sanitizeKey(key)] = value;
-  //         }
-  //       });
-  //       await addDoc(collection(db, "employeeData"), sanitizedRow);
-  //       setImportProgress(Math.round(((i + 1) / rows.length) * 100));
-  //     }
-
-  //     setImportProgress(null); // Hide progress bar
-  //     alert(`Imported ${rows.length} rows from Excel to Firestore!`);
-  //   } catch (err) {
-  //     setImportProgress(null);
-  //     console.error("Error importing Excel:", err);
-  //     alert("Failed to import Excel data.");
-  //   }
-  // };
 
   return (
     <>
@@ -623,14 +545,7 @@ const EmployeeDataFormContainer: React.FC = () => {
             >
               Clear Filters
             </Button>
-            {/* <Button
-              variant="contained"
-              color="primary"
-              onClick={importExcelToFirestore}
-              sx={{ mb: 2 }}
-            >
-              Import Excel to Firestore
-            </Button> */}
+
             {importProgress !== null && (
               <Box sx={{ width: "100%", mb: 2 }}>
                 <LinearProgress variant="determinate" value={importProgress} />
