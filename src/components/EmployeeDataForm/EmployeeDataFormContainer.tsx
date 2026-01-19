@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import EmployeeDataFormPage from "./EmployeeDataFormPage";
+import EmployeeDetail from "./EmployeeDetail";
 import { db } from "../../firebase/config";
 import {
   collection,
@@ -11,6 +12,11 @@ import {
   orderBy,
   limit,
   writeBatch,
+  startAfter,
+  where,
+  getCountFromServer,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import dayjs from "dayjs";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -24,6 +30,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Paper from "@mui/material/Paper";
 import LinearProgress from "@mui/material/LinearProgress";
 import { columns, dateFields, dropdownFields, PAGE_SIZE, sanitizeKey, unsanitizeKey } from "../../utils/KeySanitizer";
+import { Typography } from "@mui/material";
 
 
 
@@ -58,6 +65,25 @@ const EmployeeDataFormContainer: React.FC = () => {
   const [rcvDate, setRcvDate] = useState<string | null>(null);
   const [importProgress] = useState<number | null>(null);
   const [jobsConverted, setJobsConverted] = useState(false);
+  const [cursors, setCursors] = useState<(QueryDocumentSnapshot<DocumentData> | null)[]>([null]);
+
+  // detail dialog state
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const openDetailDialog = (row: any) => {
+    if (!row || !row.id) return;
+    setDetailId(row.id);
+    setDetailOpen(true);
+  };
+  const handleDetailClose = () => {
+    setDetailOpen(false);
+    setDetailId(null);
+  };
+  const handleDetailSaved = async () => {
+    // refresh current page after save in detail
+    await fetchRows(page);
+    handleDetailClose();
+  };
 
   // Fetch total count (optional, for pagination UI)
   const convertJobs = useCallback(async () => {
@@ -67,7 +93,7 @@ const EmployeeDataFormContainer: React.FC = () => {
     try {
       const snapshot = await getDocs(collection(db, "employeeData"));
       let updatedCount = 0;
-        setTotalRows(snapshot.size);
+      setTotalRows(snapshot.size);
       const batch = writeBatch(db);
 
       for (const docSnapshot of snapshot.docs) {
@@ -106,36 +132,50 @@ const EmployeeDataFormContainer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [jobsConverted, setTotalRows]);
+  }, [jobsConverted]);
 
   useEffect(() => {
     convertJobs();
   }, [convertJobs]);
   // Fetch paginated rows
-  // Optimized fetchRows function
+
+  // Fetch rows with server-side filters and cursor pagination
   const fetchRows = useCallback(
-    async (pageNum = 1) => {
+    async (
+      pageNumber: number,
+      filters?: {
+        searchText?: string;
+        blDate?: string | null;
+        coDate?: string | null;
+        rcvDate?: string | null;
+      }
+    ) => {
       setLoading(true);
       try {
-        // Then proceed with regular fetching with proper numeric sorting
         let q = query(
           collection(db, "employeeData"),
           orderBy(sanitizeKey("Job"), "desc"),
           limit(PAGE_SIZE)
         );
 
+        const cursor = cursors[pageNumber - 1];
+        if (cursor) {
+          q = query(
+            collection(db, "employeeData"),
+            orderBy(sanitizeKey("Job"), "desc"),
+            startAfter(cursor),
+            limit(PAGE_SIZE)
+          );
+        }
+
         const snapshot = await getDocs(q);
+
         const data = snapshot.docs.map((doc) => {
           const raw = doc.data();
-          // Create a properly typed mapping with index signature
-          const mapped: { id: string; [key: string]: any } = { id: doc.id };
-
-          // Only process the fields we need for display
+          const mapped: { id: string;[key: string]: any } = { id: doc.id };
           for (const key of Object.keys(raw)) {
-            const originalKey = unsanitizeKey(key);
-            mapped[originalKey] = raw[key];
+            mapped[unsanitizeKey(key)] = raw[key];
           }
-
           return mapped;
         });
 
@@ -145,14 +185,23 @@ const EmployeeDataFormContainer: React.FC = () => {
             ? snapshot.docs[snapshot.docs.length - 1]
             : null
         );
+        // Save cursor for this page if not already saved
+        if (!cursors[pageNumber]) {
+          setCursors((prev) => {
+            const updated = [...prev];
+            updated[pageNumber] = snapshot.docs[snapshot.docs.length - 1] ?? null;
+            return updated;
+          });
+        }
       } catch (err) {
         console.error("Error fetching employee data:", err);
       } finally {
         setLoading(false);
       }
     },
-    [setLoading, setRows, setLastDoc]
+    [cursors]
   );
+
 
   // Add this state to store dynamic dropdown options
   const [dropdownOptions, setDropdownOptions] = useState<
@@ -231,34 +280,15 @@ const EmployeeDataFormContainer: React.FC = () => {
     }
   }, []);
 
+  // fetch dropdown options once on mount
   useEffect(() => {
-    fetchRows(page);
     fetchDropdownOptions();
-  }, [page, fetchRows, fetchDropdownOptions]);
+  }, [fetchDropdownOptions]);
 
+  // fetch rows whenever page or filters change (server-side filtering)
   useEffect(() => {
-    let filtered = rows;
-
-    if (searchText) {
-      filtered = filtered.filter((row) =>
-        columns.some((col) =>
-          String(row[col] ?? "")
-            .toLowerCase()
-            .includes(searchText.toLowerCase())
-        )
-      );
-    }
-    if (blDate) {
-      filtered = filtered.filter((row) => row["B/L Date"] === blDate);
-    }
-    if (coDate) {
-      filtered = filtered.filter((row) => row["CO Date"] === coDate);
-    }
-    if (rcvDate) {
-      filtered = filtered.filter((row) => row["Rcv Date"] === rcvDate);
-    }
-    setFilteredRows(filtered);
-  }, [rows, searchText, blDate, coDate, rcvDate]);
+    fetchRows(page, { searchText, blDate, coDate, rcvDate });
+  }, [page, fetchRows, searchText, blDate, coDate, rcvDate]);
 
   // Add this function to get the next Job number
   const getNextJobNumber = useCallback(async () => {
@@ -370,7 +400,7 @@ const EmployeeDataFormContainer: React.FC = () => {
       } else {
         await addDoc(collection(db, "employeeData"), sanitizedForm);
       }
-      await fetchRows();
+      await fetchRows(1);
       handleDialogClose();
     } catch (err) {
       console.error("Error saving employee data:", err);
@@ -410,46 +440,46 @@ const EmployeeDataFormContainer: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
-// Add a quickFill function to create pre-populated entries
-const quickFillForm = async () => {
-  // Get the next job number for auto-increment
-  const nextJobNumber = await getNextJobNumber();
-  
-  // Pre-populate with sample data
-  const sampleData = {
-    "Job": nextJobNumber.toString(),
-    "B/L No": "JSDEXP-04002/KS",
-    "B/L Date": "2021-04-02", // YYYY-MM-DD format for internal storage
-    "Imp/Exp": "RE-EXPORT",
-    "Ship'm Mode": "LAND-LCL",
-    "Importer": "JI SHUN DA TRADING CO., LTD",
-    "Client Name": "FULLWELL MR. KHEAMARA)",
-    "Inv": "RE-KSJSD-21-0004/A",
-    "PKL": "RE-KSJSD-21-0004/A",
-    "INV & PKL Date": "2021-04-01",
-    "POL": "SIBW",
-    "Transit Port": "KREAL",
-    "SCAN STATION": "KREAL",
-    "Final Destination": "LAOS",
-    "Commodity": "NEW CAR LAND ROVER DISCOVERY",
-    "GW": "2446",
-    "CBM/CIF": "",
-    "Container No": "LCL",
-    "Quantity": "1 UNIT",
-    "20'": "0",
-    "40'": "0",
-    "Received Date": "2021-04-08",
-    // Add current date for tracking fields
-    "TP DATE": dayjs().format("YYYY-MM-DD"),
-    "IM8 DATE": dayjs().format("YYYY-MM-DD"),
-    // Set creation timestamp
-    "Last Updated": dayjs().format("YYYY-MM-DD HH:mm:ss")
+  // Add a quickFill function to create pre-populated entries
+  const quickFillForm = async () => {
+    // Get the next job number for auto-increment
+    const nextJobNumber = await getNextJobNumber();
+
+    // Pre-populate with sample data
+    const sampleData = {
+      "Job": nextJobNumber.toString(),
+      "B/L No": "JSDEXP-04002/KS",
+      "B/L Date": "2021-04-02", // YYYY-MM-DD format for internal storage
+      "Imp/Exp": "RE-EXPORT",
+      "Ship'm Mode": "LAND-LCL",
+      "Importer": "JI SHUN DA TRADING CO., LTD",
+      "Client Name": "FULLWELL MR. KHEAMARA)",
+      "Inv": "RE-KSJSD-21-0004/A",
+      "PKL": "RE-KSJSD-21-0004/A",
+      "INV & PKL Date": "2021-04-01",
+      "POL": "SIBW",
+      "Transit Port": "KREAL",
+      "SCAN STATION": "KREAL",
+      "Final Destination": "LAOS",
+      "Commodity": "NEW CAR LAND ROVER DISCOVERY",
+      "GW": "2446",
+      "CBM/CIF": "",
+      "Container No": "LCL",
+      "Quantity": "1 UNIT",
+      "20'": "0",
+      "40'": "0",
+      "Received Date": "2021-04-08",
+      // Add current date for tracking fields
+      "TP DATE": dayjs().format("YYYY-MM-DD"),
+      "IM8 DATE": dayjs().format("YYYY-MM-DD"),
+      // Set creation timestamp
+      "Last Updated": dayjs().format("YYYY-MM-DD HH:mm:ss")
+    };
+
+    setForm(sampleData);
+    setEditIndex(null);
+    setDialogOpen(true);
   };
-  
-  setForm(sampleData);
-  setEditIndex(null);
-  setDialogOpen(true);
-};
   // const excelDateFields = [
   //   "B/L Date",
   //   "ETA/ETD",
@@ -617,11 +647,12 @@ const quickFillForm = async () => {
           </Paper>
           <EmployeeDataFormPage
             columns={columns}
-            rows={filteredRows}
+            rows={rows}
             form={form}
             dialogOpen={dialogOpen}
             editIndex={editIndex}
             openEditDialog={openEditDialog}
+            openDetailDialog={openDetailDialog}
             openAddDialog={openAddDialog}
             handleDialogClose={handleDialogClose}
             handleDialogSave={handleDialogSave}
@@ -630,6 +661,16 @@ const quickFillForm = async () => {
             handleExportWithTemplate={handleExportWithTemplate}
             dropdownOptions={dropdownOptions}
           />
+
+          {/* Employee detail dialog - opens when a row is clicked */}
+          <EmployeeDetail
+            id={detailId}
+            open={detailOpen}
+            onClose={handleDetailClose}
+            onSaved={handleDetailSaved}
+            dropdownOptions={dropdownOptions}
+          />
+
           <Button
             variant="contained"
             color="secondary"
@@ -644,10 +685,16 @@ const quickFillForm = async () => {
               <Pagination
                 count={Math.ceil(totalRows / PAGE_SIZE)}
                 page={page}
-                onChange={(_, value) => setPage(value)}
+                onChange={(_, value) => {
+                  setPage(value);
+                  fetchRows(value);
+                }}
                 color="primary"
               />
             )}
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Current page: {page}, Showing {filteredRows.length} rows
+            </Typography>
           </Box>
         </>
       )}

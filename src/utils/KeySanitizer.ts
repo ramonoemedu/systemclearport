@@ -1,5 +1,17 @@
 // filepath: /src/utils/keySanitizer.ts
 
+import dayjs from "dayjs";
+
+
+
+export const formatDisplayDate = (value: string) => {
+  if (!value) return "";
+  // Try to parse and format as dd-MM-yyyy
+  const d = dayjs(value, ["YYYY-MM-DD", "DD-MM-YYYY"]);
+  return d.isValid() ? d.format("DD-MM-YYYY") : value;
+};
+
+
 export const dateFields = [
   "B/L Date",
   "INV & PKL Date",

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from "../../firebase/config";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
 import {
   Box,
   Button,
@@ -10,7 +10,9 @@ import {
   Paper,
   Avatar,
   Alert,
-  Link
+  Link,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
@@ -19,18 +21,21 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isRegister, setIsRegister] = useState(false);
-const navigate = useNavigate();
+  const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
       if (isRegister) {
+        await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
+        await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
         await signInWithEmailAndPassword(auth, email, password);
       }
-    navigate('/home');
+      navigate('/home');
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -93,6 +98,10 @@ const navigate = useNavigate();
             autoComplete="current-password"
             sx={{ mb: 3 }}
             required
+          />
+          <FormControlLabel
+            control={<Checkbox value="remember" color="primary" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />}
+            label="Remember me"
           />
           <Button
             type="submit"
