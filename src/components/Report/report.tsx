@@ -30,14 +30,11 @@ import {
   limit,
   getDocs,
   startAfter,
-  where,
-  getCountFromServer,
-  QueryConstraint,
+  QueryDocumentSnapshot,
   DocumentData,
-  QuerySnapshot,
   writeBatch,
   doc,
-  QueryDocumentSnapshot,
+
 } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { sanitizeKey, columns, unsanitizeKey } from "../../utils/KeySanitizer";
@@ -53,7 +50,7 @@ declare global {
 }
 
 const PAGE_SIZE = 20;
-const SEARCH_FIELD = "No Container";
+
 
 const ReportPage: React.FC = () => {
   const theme = useTheme();
@@ -67,13 +64,9 @@ const ReportPage: React.FC = () => {
   const [displayedRows, setDisplayedRows] = useState<Record<string, any>[]>([]); // rows after client-side filtering (if any)
   const [page, setPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
-  const [lastDoc, setLastDoc] = useState<any>(null);
 
   // --- Cursors & cache (use both state and refs; refs keep stable callback closures) ---
-  const [pageCursors, setPageCursors] = useState<any[]>([]);
-  const pageCursorsRef = useRef<any[]>([]);
-  const [pageCache, setPageCache] = useState<Record<number, Record<string, any>[]>>({});
-  const pageCacheRef = useRef<Record<number, Record<string, any>[]>>({});
+
   const [cursors, setCursors] = useState<(QueryDocumentSnapshot<DocumentData> | null)[]>([null]);
 
 
@@ -87,9 +80,7 @@ const ReportPage: React.FC = () => {
 
   // --- UI / filter state ---
   const [searchText, setSearchText] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const debounceRef = useRef<number | undefined>(undefined);
-  const filtersKeyRef = useRef<string>(""); // track latest filters key
+
   const [blDate, setBlDate] = useState<string | null>(null);
   const [coDate, setCoDate] = useState<string | null>(null);
   const [rcvDate, setRcvDate] = useState<string | null>(null);
@@ -97,7 +88,6 @@ const ReportPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const rowsRef = useRef<Record<string, any>[]>([]);
   const [filteredRows, setFilteredRows] = useState(rows);
 
 
@@ -214,11 +204,7 @@ const ReportPage: React.FC = () => {
         });
 
         setRows(data);
-        setLastDoc(
-          snapshot.docs.length > 0
-            ? snapshot.docs[snapshot.docs.length - 1]
-            : null
-        );
+
         // Save cursor for this page if not already saved
         if (!cursors[pageNumber]) {
           setCursors((prev) => {
@@ -400,7 +386,7 @@ const ReportPage: React.FC = () => {
     }
     setFilteredRows(filtered);
     return filtered;
-  }, [rows, searchText, blDate, coDate, rcvDate, columns]);
+  }, [rows, searchText, blDate, coDate, rcvDate]);
 
 
   // sync computed -> displayedRows (only when computed changes)
@@ -477,20 +463,11 @@ const ReportPage: React.FC = () => {
     }
     // reset to page 1 when sort changes
     setPage(1);
-    setPageCursors([]);
-    pageCursorsRef.current = [];
+    setPage(1);
+    setCursors([null]);
   };
 
-  function normalizeRowDate(value: any): string | null {
-    if (!value && value !== 0) return null;
-    if (typeof value === "object" && typeof value.toDate === "function") {
-      return dayjs(value.toDate()).format("YYYY-MM-DD");
-    }
-    if (typeof value === "string") {
-      return dayjs(value).isValid() ? dayjs(value).format("YYYY-MM-DD") : value;
-    }
-    return String(value);
-  }
+
 
   // --- Render ---
   return (

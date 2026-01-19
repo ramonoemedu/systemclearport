@@ -13,8 +13,6 @@ import {
   limit,
   writeBatch,
   startAfter,
-  where,
-  getCountFromServer,
   QueryDocumentSnapshot,
   DocumentData,
 } from "firebase/firestore";
@@ -56,10 +54,9 @@ const EmployeeDataFormContainer: React.FC = () => {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [setLastDoc] = useState<any>(null);
   const [totalRows, setTotalRows] = useState(0);
   const [searchText, setSearchText] = useState("");
-  const [filteredRows, setFilteredRows] = useState(rows);
+
   const [blDate, setBlDate] = useState<string | null>(null);
   const [coDate, setCoDate] = useState<string | null>(null);
   const [rcvDate, setRcvDate] = useState<string | null>(null);
@@ -180,11 +177,7 @@ const EmployeeDataFormContainer: React.FC = () => {
         });
 
         setRows(data);
-        setLastDoc(
-          snapshot.docs.length > 0
-            ? snapshot.docs[snapshot.docs.length - 1]
-            : null
-        );
+
         // Save cursor for this page if not already saved
         if (!cursors[pageNumber]) {
           setCursors((prev) => {
@@ -693,7 +686,7 @@ const EmployeeDataFormContainer: React.FC = () => {
               />
             )}
             <Typography variant="body2" sx={{ mb: 1 }}>
-              Current page: {page}, Showing {filteredRows.length} rows
+              Current page: {page}, Showing {rows.length} rows
             </Typography>
           </Box>
         </>

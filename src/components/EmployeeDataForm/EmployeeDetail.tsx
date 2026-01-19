@@ -32,7 +32,6 @@ type Props = {
 const EmployeeDetail: React.FC<Props> = ({ id, open, onClose, onSaved, dropdownOptions = {} }) => {
   const [item, setItem] = useState<Record<string, any> | null>(null);
   const [saving, setSaving] = useState(false);
-  const printableRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!id || !open) return;
