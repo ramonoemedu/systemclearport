@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "react-scripts start --openssl-legacy-provider",
-    "build": "react-scripts build --openssl-legacy-provider",
+    "build": "NODE_OPTIONS=--max_old_space_size=4096 react-scripts build --openssl-legacy-provider",
     "test": "react-scripts test --openssl-legacy-provider"
   },
   "eslintConfig": {
