@@ -9,17 +9,10 @@ module.exports = function override(config, env) {
     hints: false
   };
   
-  // Find and configure ForkTsCheckerWebpackPlugin
-  const ForkTsCheckerWebpackPlugin = config.plugins.find(
-    plugin => plugin.constructor.name === 'ForkTsCheckerWebpackPlugin'
+  // Remove ForkTsCheckerWebpackPlugin to avoid memory issues
+  config.plugins = config.plugins.filter(
+    plugin => plugin.constructor.name !== 'ForkTsCheckerWebpackPlugin'
   );
-  
-  if (ForkTsCheckerWebpackPlugin) {
-    // Increase memory limit for TypeScript checker
-    ForkTsCheckerWebpackPlugin.options.memoryLimit = 8192;
-    // Make it less strict to avoid crashes
-    ForkTsCheckerWebpackPlugin.options.async = true;
-  }
   
   // Optimize chunks
   if (config.optimization) {
