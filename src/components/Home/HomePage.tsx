@@ -12,7 +12,6 @@ import {
   IconButton,
   Avatar,
   Button,
-  Tooltip,
   Stack,
   useTheme,
   alpha,
@@ -26,7 +25,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
-import { WorkRounded, Brightness4, Brightness7, ChevronLeft } from '@mui/icons-material';
+import { WorkRounded, Brightness4, Brightness7 } from '@mui/icons-material';
 import { useColorMode } from '../../theme';
 
 const drawerWidth = 260;

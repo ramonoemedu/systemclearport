@@ -12,7 +12,6 @@ import {
   CircularProgress,
   Alert,
   Stack,
-  IconButton,
   Chip,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
