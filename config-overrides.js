@@ -1,4 +1,4 @@
-module.exports = function override(config) {
+module.exports = function override(config, env) {
   // Disable source maps to reduce memory usage
   config.devtool = false;
   
@@ -8,6 +8,18 @@ module.exports = function override(config) {
     maxEntrypointSize: 512000,
     hints: false
   };
+  
+  // Find and configure ForkTsCheckerWebpackPlugin
+  const ForkTsCheckerWebpackPlugin = config.plugins.find(
+    plugin => plugin.constructor.name === 'ForkTsCheckerWebpackPlugin'
+  );
+  
+  if (ForkTsCheckerWebpackPlugin) {
+    // Increase memory limit for TypeScript checker
+    ForkTsCheckerWebpackPlugin.options.memoryLimit = 8192;
+    // Make it less strict to avoid crashes
+    ForkTsCheckerWebpackPlugin.options.async = true;
+  }
   
   // Optimize chunks
   if (config.optimization) {
