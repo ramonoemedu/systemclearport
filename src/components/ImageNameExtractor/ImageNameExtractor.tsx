@@ -116,7 +116,8 @@ const ImageNameExtractor: React.FC = () => {
       // Add headers
       worksheet.columns = [
         { header: 'No.', key: 'no', width: 10 },
-        { header: 'Name', key: 'name', width: 30 },
+        { header: 'Last Name', key: 'lastName', width: 30 },
+        { header: 'First Name', key: 'firstName', width: 30 },
         { header: 'Source Image', key: 'source', width: 30 },
       ];
 
@@ -131,9 +132,15 @@ const ImageNameExtractor: React.FC = () => {
 
       // Add data
       extractedNames.forEach((item, index) => {
+        const parts = item.name.split(' ');
+        let lastName = parts[0] || '';
+        let firstName = parts.slice(1).join(' ') || '';
+        lastName = lastName.toUpperCase();
+        firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
         worksheet.addRow({
           no: index + 1,
-          name: item.name,
+          lastName,
+          firstName,
           source: item.source,
         });
       });

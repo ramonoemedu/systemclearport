@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "react-app-rewired start --openssl-legacy-provider",
+    "start": "react-scripts start",
     "build": "export NODE_OPTIONS='--max_old_space_size=8192' && react-app-rewired build --openssl-legacy-provider",
     "test": "react-app-rewired test --openssl-legacy-provider"
   },
