@@ -23,6 +23,7 @@
     "@mui/x-date-pickers": "^8.11.0",
     "dayjs": "^1.11.18",
     "docx": "^9.5.1",
+    "pdfjs-dist": "^3.10.130",
     "docxtemplater": "^3.66.3",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",

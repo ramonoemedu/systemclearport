@@ -8,6 +8,8 @@ import ReportPage from './components/Report/report';
 import FormWordPage from './components/FormWord/FormWordPage';
 import ChinaCustomsForm from './components/ChinaCustomsForm/ChinaCustomsForm';
 import ImageNameExtractor from './components/ImageNameExtractor/ImageNameExtractor';
+import CvConverter from './components/CvConverter/CvConverter';
+import PdfConverterPage from './components/PdfConverter/PdfConverterPage';
 
 
 export function App() {
@@ -21,6 +23,8 @@ export function App() {
           <Route path="reports" element={<ReportPage />} />
           <Route path="formword" element={<FormWordPage />} />
           <Route path="name-extractor" element={<ImageNameExtractor />} />
+          <Route path="cv-converter" element={<CvConverter />} />
+          <Route path="pdf-converter" element={<PdfConverterPage />} />
           <Route path="customs-form/:id" element={<ChinaCustomsForm />} /> {/* Fix: remove leading slash */}
           {/* Add more nested routes here */}
         </Route>

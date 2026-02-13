@@ -25,7 +25,9 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
+import ArticleIcon from '@mui/icons-material/Article';
 import { WorkRounded, Brightness4, Brightness7 } from '@mui/icons-material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useColorMode } from '../../theme';
 
 const drawerWidth = 260;
@@ -76,10 +78,22 @@ const HomePage: React.FC = () => {
       selected: location.pathname.startsWith('/home/formword'),
     },
     {
+      label: 'CV Converter',
+      icon: <ArticleIcon />,
+      path: '/home/cv-converter',
+      selected: location.pathname.startsWith('/home/cv-converter'),
+    },
+    {
       label: 'Name Extractor',
       icon: <ImageSearchIcon />,
       path: '/home/name-extractor',
       selected: location.pathname.startsWith('/home/name-extractor'),
+    },
+    {
+      label: 'PDF Converter',
+      icon: <PictureAsPdfIcon />,
+      path: '/home/pdf-converter',
+      selected: location.pathname.startsWith('/home/pdf-converter'),
     },
   ];
 
